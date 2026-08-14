@@ -1,0 +1,512 @@
+:root {
+  --bg: #14161c;
+  --panel: #1c1f28;
+  --panel-2: #232732;
+  --border: #2e3340;
+  --text: #e8eaf0;
+  --text-dim: #9aa0b0;
+  --accent: #f28c28;
+  --accent-2: #4c8bf5;
+  --danger: #e6584f;
+  --radius: 10px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #f4f5f8;
+  --panel: #ffffff;
+  --panel-2: #eef0f4;
+  --border: #dde1e8;
+  --text: #1c1f28;
+  --text-dim: #666e7d;
+  --accent: #e8791a;
+  --accent-2: #3f74d6;
+  --danger: #d6423a;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, select {
+  font-family: inherit;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.app-header h1 {
+  font-size: 16px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: 24px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.tab-btn.active {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.icon-btn:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.app-body {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.form-row input, .form-row select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.btn {
+  background: var(--accent);
+  color: #1a1206;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn.secondary {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn.danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.color-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--panel-2);
+  color: var(--text-dim);
+}
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.row-actions button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.month-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.totals {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.totals strong {
+  color: var(--text);
+}
+
+.thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid var(--border);
+}
+
+.project-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.image-upload {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.image-upload input[type='file'] {
+  display: none;
+}
+
+.project-settings-row {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.project-settings-row .form-row {
+  margin-bottom: 6px;
+}
+
+.range-export {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+/* --- widget --- */
+.widget {
+  height: 100vh;
+  width: 100vw;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+.widget-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+}
+
+.widget-titlebar .spacer {
+  flex: 1;
+}
+
+.widget-titlebar button {
+  -webkit-app-region: no-drag;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.widget-titlebar button:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.widget-titlebar button.close-btn:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.widget-content {
+  flex: 1;
+  padding: 4px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.widget .project-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 20px;
+}
+
+.widget .project-name.idle {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.widget .timer {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  margin: 2px 0 10px;
+  flex-shrink: 0;
+}
+
+.widget .controls {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.widget .controls .btn {
+  flex: 1;
+}
+
+.widget-switch-link {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 11px;
+  text-decoration: underline;
+  padding: 6px 0 0;
+  align-self: flex-start;
+}
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.tile-grid.expanded {
+  max-height: 320px;
+}
+
+.project-tile {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 6px;
+  min-height: 84px;
+  text-align: center;
+}
+
+.project-tile:hover {
+  border-color: var(--accent);
+}
+
+.project-tile .tile-image {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.project-tile .tile-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  font-size: 13px;
+}
+
+.project-tile .tile-label {
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.project-tile.more-tile,
+.project-tile.create-tile {
+  color: var(--text-dim);
+  border-style: dashed;
+}
+
+.project-tile.create-tile .tile-avatar {
+  background: transparent;
+  color: var(--accent);
+  font-size: 22px;
+}
+
+.grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.grid-header button {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 11px;
+  text-decoration: underline;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-form input, .create-form select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.create-form .create-form-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.create-form .create-form-actions .btn {
+  flex: 1;
+}

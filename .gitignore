@@ -1,0 +1,9 @@
+node_modules/
+out/
+dist/
+electron-log.txt
+*.log
+*.tsbuildinfo
+.tsbuild/
+electron.vite.config.js
+electron.vite.config.d.ts

@@ -1,0 +1,178 @@
+import { BrowserWindow, screen } from 'electron'
+import { join } from 'path'
+import { execFile } from 'child_process'
+
+const isDev = !!process.env.ELECTRON_RENDERER_URL
+
+let mainWindow: BrowserWindow | null = null
+let widgetWindow: BrowserWindow | null = null
+
+const preload = join(__dirname, '../preload/index.js')
+
+const WIDGET_RIGHT_MARGIN = 24
+const WIDGET_TOP_MARGIN = 24
+const WIDGET_DEFAULT_WIDTH = 280
+const WIDGET_DEFAULT_HEIGHT = 132
+
+export function getMainWindow(): BrowserWindow | null {
+  return mainWindow
+}
+
+export function getWidgetWindow(): BrowserWindow | null {
+  return widgetWindow
+}
+
+export function createMainWindow(): BrowserWindow {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show()
+    mainWindow.focus()
+    return mainWindow
+  }
+
+  mainWindow = new BrowserWindow({
+    width: 980,
+    height: 680,
+    minWidth: 760,
+    minHeight: 520,
+    title: 'TimeTracker',
+    autoHideMenuBar: true,
+    show: false,
+    webPreferences: {
+      preload,
+      sandbox: false
+    }
+  })
+
+  mainWindow.once('ready-to-show', () => mainWindow?.show())
+
+  mainWindow.on('close', (e) => {
+    // Hide instead of quit so the app keeps tracking in the tray.
+    if (!(global as any).__appQuitting) {
+      e.preventDefault()
+      mainWindow?.hide()
+    }
+  })
+
+  if (isDev && process.env.ELECTRON_RENDERER_URL) {
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
+  } else {
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+
+  return mainWindow
+}
+
+export function createWidgetWindow(): BrowserWindow {
+  if (widgetWindow && !widgetWindow.isDestroyed()) {
+    return widgetWindow
+  }
+
+  const display = screen.getPrimaryDisplay()
+  const { width } = display.workArea
+
+  widgetWindow = new BrowserWindow({
+    width: WIDGET_DEFAULT_WIDTH,
+    height: WIDGET_DEFAULT_HEIGHT,
+    x: width - WIDGET_DEFAULT_WIDTH - WIDGET_RIGHT_MARGIN,
+    y: WIDGET_TOP_MARGIN,
+    resizable: false,
+    movable: true,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    show: false,
+    webPreferences: {
+      preload,
+      sandbox: false
+    }
+  })
+
+  widgetWindow.setAlwaysOnTop(true, 'screen-saver')
+
+  widgetWindow.on('close', (e) => {
+    if (!(global as any).__appQuitting) {
+      e.preventDefault()
+      widgetWindow?.hide()
+    }
+  })
+
+  if (isDev && process.env.ELECTRON_RENDERER_URL) {
+    widgetWindow.loadURL(`${process.env.ELECTRON_RENDERER_URL}/widget.html`)
+  } else {
+    widgetWindow.loadFile(join(__dirname, '../renderer/widget.html'))
+  }
+
+  return widgetWindow
+}
+
+/** Shows the widget, re-enabling always-on-top and bringing it above other windows. */
+export function showWidgetWindow(): void {
+  const w = createWidgetWindow()
+  w.setAlwaysOnTop(true, 'screen-saver')
+  w.showInactive()
+  w.moveTop()
+}
+
+export function hideWidgetWindow(): void {
+  widgetWindow?.hide()
+}
+
+export function toggleWidgetWindow(): void {
+  const w = createWidgetWindow()
+  if (w.isVisible()) {
+    hideWidgetWindow()
+  } else {
+    showWidgetWindow()
+  }
+}
+
+/** Resizes the widget while keeping it anchored to the top-right corner of the screen. */
+export function resizeWidgetWindow(width: number, height: number): void {
+  if (!widgetWindow || widgetWindow.isDestroyed()) return
+  const display = screen.getPrimaryDisplay()
+  const { width: screenWidth } = display.workArea
+  widgetWindow.setBounds({
+    x: Math.round(screenWidth - width - WIDGET_RIGHT_MARGIN),
+    y: WIDGET_TOP_MARGIN,
+    width: Math.round(width),
+    height: Math.round(height)
+  })
+}
+
+function getHwndPointer(win: BrowserWindow): bigint {
+  const buf = win.getNativeWindowHandle()
+  return buf.readBigUInt64LE(0)
+}
+
+/**
+ * Emulates Win32 "send to back" (HWND_BOTTOM) via PowerShell/P-Invoke, since
+ * Electron has no z-order API below "always on top". The window stays fully
+ * visible on the desktop, just behind other normal windows.
+ */
+export function sendWidgetToBack(): void {
+  if (!widgetWindow || widgetWindow.isDestroyed()) return
+  widgetWindow.setAlwaysOnTop(false)
+  widgetWindow.blur()
+
+  const hwnd = getHwndPointer(widgetWindow).toString()
+  const script = [
+    'Add-Type @"',
+    'using System;',
+    'using System.Runtime.InteropServices;',
+    'public class TimeTrackerWin32 {',
+    '  [DllImport("user32.dll")]',
+    '  public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);',
+    '}',
+    '"@',
+    `[TimeTrackerWin32]::SetWindowPos([IntPtr]${hwnd}, [IntPtr]1, 0, 0, 0, 0, 0x0013) | Out-Null`
+  ].join('\n')
+
+  execFile(
+    'powershell.exe',
+    ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', script],
+    () => {
+      // Best-effort; ignore failures (e.g. PowerShell unavailable).
+    }
+  )
+}
