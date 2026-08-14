@@ -45,7 +45,8 @@
     "publish": {
       "provider": "github",
       "owner": "Factor129",
-      "repo": "TimeTracker"
+      "repo": "TimeTracker",
+      "releaseType": "release"
     },
     "win": {
       "target": "nsis",
