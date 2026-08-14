@@ -7,3 +7,4 @@ electron-log.txt
 .tsbuild/
 electron.vite.config.js
 electron.vite.config.d.ts
+.claude/
