@@ -14,7 +14,9 @@ Control de tiempo por proyecto para Windows, con icono en la bandeja del sistema
 
 ## Descargar e instalar
 
-Ve a la pestaña [Releases](https://github.com/Factor129/TimeTracker/releases) de este repositorio y descarga el instalador (`TimeTracker Setup X.X.X.exe`) de la versión más reciente. Ejecútalo e instala — las siguientes versiones se instalarán solas automáticamente.
+Ve a la pestaña [Releases](https://github.com/Factor129/TimeTracker/releases) de este repositorio y descarga **únicamente** `TimeTracker-Setup-X.X.X.exe` de la versión más reciente. Ejecútalo e instala — las siguientes versiones se instalarán solas automáticamente.
+
+Cada release incluye otros dos archivos que **no hay que descargar ni abrir**: `latest.yml` y `TimeTracker-Setup-X.X.X.exe.blockmap`. Son metadatos que la app ya instalada consulta sola en segundo plano para comprobar si hay una versión nueva y descargar solo lo que cambió; no tienen ningún uso manual.
 
 > El instalador no está firmado digitalmente, así que es posible que Windows SmartScreen muestre un aviso la primera vez ("Más información" → "Ejecutar de todas formas").
 
