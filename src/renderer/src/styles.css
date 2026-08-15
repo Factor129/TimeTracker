@@ -9,7 +9,7 @@
   --accent-2: #4c8bf5;
   --danger: #e6584f;
   --radius: 10px;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
   color-scheme: dark;
 }
 
@@ -68,7 +68,7 @@ input, select {
 .app-header h1 {
   font-size: 16px;
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .tabs {
@@ -84,6 +84,7 @@ input, select {
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;
+  font-weight: 500;
 }
 
 .tab-btn.active {
@@ -133,6 +134,7 @@ input, select {
   color: var(--text-dim);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  font-weight: 600;
 }
 
 .form-row {
@@ -268,6 +270,10 @@ th {
   vertical-align: middle;
 }
 
+.project-avatar[src] {
+  object-fit: cover;
+}
+
 .image-upload {
   display: flex;
   align-items: center;
@@ -297,24 +303,25 @@ th {
   flex-wrap: wrap;
 }
 
-/* --- widget --- */
+/* ================= widget ================= */
+
 .widget {
   height: 100vh;
   width: 100vw;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  background: var(--bg);
+  border-radius: 26px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   user-select: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
 .widget-titlebar {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
+  gap: 2px;
+  padding: 12px 14px 0;
   -webkit-app-region: drag;
   flex-shrink: 0;
 }
@@ -328,10 +335,10 @@ th {
   background: transparent;
   border: none;
   color: var(--text-dim);
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  font-size: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -349,110 +356,189 @@ th {
 
 .widget-content {
   flex: 1;
-  padding: 4px 14px 14px;
+  padding: 10px 18px 18px;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
-.widget .project-name {
-  font-size: 13px;
+.section-label {
+  font-size: 12px;
   font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.back-btn {
+  background: var(--panel-2);
+  border: none;
   color: var(--text);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* --- timer view --- */
+
+.timer-view {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+}
+
+.timer-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  min-width: 0;
+  width: 100%;
+}
+
+.entity-avatar {
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.timer-meta-text {
+  min-width: 0;
+}
+
+.timer-client {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  min-height: 20px;
 }
 
-.widget .project-name.idle {
-  color: var(--text-dim);
-  font-weight: 400;
+.timer-project {
+  font-size: 16px;
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.widget .timer {
-  font-size: 26px;
+.timer-clock {
+  font-size: 44px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
-  margin: 2px 0 10px;
-  flex-shrink: 0;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 20px;
 }
 
-.widget .controls {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
+.btn-pill {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  padding: 14px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
 }
 
-.widget .controls .btn {
-  flex: 1;
+.btn-pill.danger {
+  background: var(--danger);
+  color: white;
 }
 
-.widget-switch-link {
+.btn-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.link-btn {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 11px;
-  text-decoration: underline;
-  padding: 6px 0 0;
-  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 12px 0 0;
+  align-self: center;
 }
+
+.link-btn:hover {
+  color: var(--text);
+}
+
+/* --- tile grid --- */
 
 .tile-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 10px;
   overflow-y: auto;
   padding-right: 2px;
+  flex: 1;
+  align-content: start;
 }
 
-.tile-grid.expanded {
-  max-height: 320px;
-}
-
-.project-tile {
+.tile {
   background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: none;
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 6px;
-  min-height: 84px;
+  gap: 8px;
+  padding: 14px 8px;
+  min-height: 92px;
   text-align: center;
 }
 
-.project-tile:hover {
-  border-color: var(--accent);
+.tile:hover {
+  background: var(--border);
 }
 
-.project-tile .tile-image {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.project-tile .tile-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+.tile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   color: #fff;
   font-size: 13px;
+  object-fit: cover;
 }
 
-.project-tile .tile-label {
-  font-size: 11px;
+.tile-avatar-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 15px;
+  border: 1.5px dashed var(--border);
+}
+
+.tile-avatar-ghost.tile-plus {
+  font-size: 22px;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.tile-label {
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
@@ -460,53 +546,28 @@ th {
   max-width: 100%;
 }
 
-.project-tile.more-tile,
-.project-tile.create-tile {
+.tile-ghost .tile-label {
   color: var(--text-dim);
-  border-style: dashed;
 }
 
-.project-tile.create-tile .tile-avatar {
-  background: transparent;
-  color: var(--accent);
-  font-size: 22px;
-}
+/* --- create view --- */
 
-.grid-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.grid-header button {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-size: 11px;
-  text-decoration: underline;
-}
-
-.create-form {
+.create-view {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.create-form input, .create-form select {
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-.create-form .create-form-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.create-form .create-form-actions .btn {
+  gap: 10px;
   flex: 1;
+}
+
+.create-input {
+  background: var(--panel-2);
+  border: none;
+  color: var(--text);
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+}
+
+.create-input:focus {
+  outline: 2px solid var(--accent);
 }

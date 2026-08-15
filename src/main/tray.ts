@@ -2,26 +2,38 @@ import { Menu, Tray, nativeImage, app } from 'electron'
 import { join } from 'path'
 import * as db from './db'
 import { createMainWindow, toggleWidgetWindow, showWidgetWindow } from './windows'
-import { broadcastTimerState } from './ipc'
+import { startTimerAction, stopTimerAction } from './ipc'
 import { isUpdateReady, restartToUpdate } from './autoUpdate'
 
 let tray: Tray | null = null
+let alertActive = false
 
-function resolveTrayIconPath(): string {
+function resolveResourcePath(name: string): string {
   return app.isPackaged
-    ? join(process.resourcesPath, 'tray.png')
-    : join(__dirname, '../../resources/tray.png')
+    ? join(process.resourcesPath, name)
+    : join(__dirname, '../../resources', name)
 }
 
 export async function createTray(): Promise<void> {
-  const icon = nativeImage.createFromPath(resolveTrayIconPath()).resize({ width: 16, height: 16 })
+  const icon = nativeImage.createFromPath(resolveResourcePath('tray.png')).resize({ width: 16, height: 16 })
   tray = new Tray(icon)
   tray.setToolTip('TimeTracker')
   await rebuildTrayMenu()
 
   tray.on('click', () => {
+    if (alertActive) setTrayAlert(false)
     toggleWidgetWindow()
   })
+}
+
+/** Swaps the tray icon to an alert color to flag a stale/forgotten running timer. */
+export function setTrayAlert(active: boolean): void {
+  if (!tray || alertActive === active) return
+  alertActive = active
+  const icon = nativeImage
+    .createFromPath(resolveResourcePath(active ? 'tray-alert.png' : 'tray.png'))
+    .resize({ width: 16, height: 16 })
+  tray.setImage(icon)
 }
 
 export async function rebuildTrayMenu(): Promise<void> {
@@ -41,9 +53,7 @@ export async function rebuildTrayMenu(): Promise<void> {
     type: 'radio' as const,
     checked: running?.projectId === p.id,
     click: async () => {
-      await db.startTimer(p.id)
-      await rebuildTrayMenu()
-      broadcastTimerState()
+      await startTimerAction(p.id)
       showWidgetWindow()
     }
   }))
@@ -58,11 +68,7 @@ export async function rebuildTrayMenu(): Promise<void> {
     {
       label: 'Detener cronómetro',
       enabled: !!running,
-      click: async () => {
-        await db.stopTimer()
-        await rebuildTrayMenu()
-        broadcastTimerState()
-      }
+      click: () => stopTimerAction()
     },
     { type: 'separator' },
     {

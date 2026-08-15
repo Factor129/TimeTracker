@@ -1,5 +1,3 @@
-import type { Project } from '../../shared/types'
-
 function initials(name: string): string {
   return name
     .split(/\s+/)
@@ -9,20 +7,27 @@ function initials(name: string): string {
     .join('')
 }
 
-export function ProjectAvatar({
-  project,
+export interface AvatarLike {
+  id: string
+  name: string
+  color: string
+  imageDataUrl: string | null
+}
+
+export function EntityAvatar({
+  entity,
   size = 28,
   className
 }: {
-  project: Pick<Project, 'name' | 'color' | 'imageDataUrl'>
+  entity: AvatarLike
   size?: number
   className?: string
 }): React.JSX.Element {
-  if (project.imageDataUrl) {
+  if (entity.imageDataUrl) {
     return (
       <img
-        src={project.imageDataUrl}
-        alt={project.name}
+        src={entity.imageDataUrl}
+        alt={entity.name}
         className={className}
         style={{ width: size, height: size }}
       />
@@ -31,9 +36,9 @@ export function ProjectAvatar({
   return (
     <span
       className={className}
-      style={{ width: size, height: size, background: project.color, fontSize: size * 0.4 }}
+      style={{ width: size, height: size, background: entity.color, fontSize: size * 0.4 }}
     >
-      {initials(project.name) || '?'}
+      {initials(entity.name) || '?'}
     </span>
   )
 }

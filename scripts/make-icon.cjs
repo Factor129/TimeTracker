@@ -63,44 +63,48 @@ function makePng(size, drawPixel) {
   ])
 }
 
-function clockPixel(x, y, size) {
-  const cx = size / 2
-  const cy = size / 2
-  const r = size / 2 - 1
-  const dx = x - cx + 0.5
-  const dy = y - cy + 0.5
-  const dist = Math.sqrt(dx * dx + dy * dy)
+function makeClockPixel(faceColor, ringColor) {
+  return function clockPixel(x, y, size) {
+    const cx = size / 2
+    const cy = size / 2
+    const r = size / 2 - 1
+    const dx = x - cx + 0.5
+    const dy = y - cy + 0.5
+    const dist = Math.sqrt(dx * dx + dy * dy)
 
-  if (dist > r) return [0, 0, 0, 0]
+    if (dist > r) return [0, 0, 0, 0]
 
-  // orange face
-  let color = [242, 140, 40, 255]
-  // darker ring
-  if (dist > r - Math.max(1, size * 0.06)) color = [200, 100, 20, 255]
+    let color = faceColor
+    if (dist > r - Math.max(1, size * 0.06)) color = ringColor
 
-  // clock hands (12 -> pointing up, 4 -> pointing lower-right)
-  const isOnSegment = (ang, len) => {
-    const hx = Math.sin(ang) * len
-    const hy = -Math.cos(ang) * len
-    // distance from point to segment (cx,cy)-(cx+hx,cy+hy)
-    const t = Math.max(0, Math.min(1, (dx * hx + dy * hy) / (hx * hx + hy * hy)))
-    const px = hx * t
-    const py = hy * t
-    const ddx = dx - px
-    const ddy = dy - py
-    return Math.sqrt(ddx * ddx + ddy * ddy) < Math.max(1, size * 0.07)
+    // clock hands (12 -> pointing up, 4 -> pointing lower-right)
+    const isOnSegment = (ang, len) => {
+      const hx = Math.sin(ang) * len
+      const hy = -Math.cos(ang) * len
+      // distance from point to segment (cx,cy)-(cx+hx,cy+hy)
+      const t = Math.max(0, Math.min(1, (dx * hx + dy * hy) / (hx * hx + hy * hy)))
+      const px = hx * t
+      const py = hy * t
+      const ddx = dx - px
+      const ddy = dy - py
+      return Math.sqrt(ddx * ddx + ddy * ddy) < Math.max(1, size * 0.07)
+    }
+
+    if (isOnSegment(0, r * 0.55) || isOnSegment((4 / 12) * Math.PI * 2, r * 0.4)) {
+      color = [255, 255, 255, 255]
+    }
+
+    return color
   }
-
-  if (isOnSegment(0, r * 0.55) || isOnSegment((4 / 12) * Math.PI * 2, r * 0.4)) {
-    color = [255, 255, 255, 255]
-  }
-
-  return color
 }
+
+const clockPixel = makeClockPixel([242, 140, 40, 255], [200, 100, 20, 255])
+const alertClockPixel = makeClockPixel([224, 60, 49, 255], [176, 40, 32, 255])
 
 const resDir = path.join(__dirname, '..', 'resources')
 if (!fs.existsSync(resDir)) fs.mkdirSync(resDir, { recursive: true })
 
 fs.writeFileSync(path.join(resDir, 'icon.png'), makePng(256, clockPixel))
 fs.writeFileSync(path.join(resDir, 'tray.png'), makePng(32, clockPixel))
+fs.writeFileSync(path.join(resDir, 'tray-alert.png'), makePng(32, alertClockPixel))
 console.log('Icons written to', resDir)

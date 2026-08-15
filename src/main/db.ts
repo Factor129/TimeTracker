@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { randomUUID } from 'crypto'
-import type { AppData, AppSettings, Client, Project, TimeEntry, MonthlyReportRow } from '../shared/types'
+import type { AppData, AppSettings, Client, Project, TimeEntry, ReportRow } from '../shared/types'
 
 const defaultData: AppData = {
   clients: [],
@@ -11,7 +11,9 @@ const defaultData: AppData = {
   running: null,
   settings: {
     theme: 'dark',
-    autoLaunch: true
+    autoLaunch: true,
+    widgetWidth: 300,
+    widgetHeight: 400
   }
 }
 
@@ -52,16 +54,29 @@ export async function listClients(): Promise<Client[]> {
   return d().clients
 }
 
-export async function upsertClient(input: { id?: string; name: string }): Promise<Client> {
+export async function upsertClient(input: {
+  id?: string
+  name: string
+  color: string
+  imageDataUrl?: string | null
+}): Promise<Client> {
   const data = d()
   if (input.id) {
     const existing = data.clients.find((c) => c.id === input.id)
     if (!existing) throw new Error('Client not found')
     existing.name = input.name
+    existing.color = input.color
+    if (input.imageDataUrl !== undefined) existing.imageDataUrl = input.imageDataUrl
     await write()
     return existing
   }
-  const client: Client = { id: uuid(), name: input.name, archived: false }
+  const client: Client = {
+    id: uuid(),
+    name: input.name,
+    color: input.color,
+    imageDataUrl: input.imageDataUrl ?? null,
+    archived: false
+  }
   data.clients.push(client)
   await write()
   return client
@@ -175,6 +190,11 @@ export async function getSettings(): Promise<AppSettings> {
   return d().settings
 }
 
+/** Synchronous read for callers (window creation) that run before an await is convenient. */
+export function getSettingsSync(): AppSettings | undefined {
+  return data?.settings
+}
+
 export async function updateSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
   const data = d()
   data.settings = { ...data.settings, ...patch }
@@ -183,11 +203,9 @@ export async function updateSettings(patch: Partial<AppSettings>): Promise<AppSe
 }
 
 // ---- Reports ----
-export async function monthlyReport(year: number, month: number): Promise<MonthlyReportRow[]> {
+export async function reportForRange(fromISO: string, toISO: string): Promise<ReportRow[]> {
   const data = d()
-  const start = new Date(year, month - 1, 1).toISOString()
-  const end = new Date(year, month, 1).toISOString()
-  const rows = new Map<string, MonthlyReportRow>()
+  const rows = new Map<string, ReportRow>()
 
   for (const project of data.projects) {
     const client = data.clients.find((c) => c.id === project.clientId)
@@ -203,7 +221,7 @@ export async function monthlyReport(year: number, month: number): Promise<Monthl
   }
 
   const closedEntries = data.entries.filter(
-    (e) => e.endedAt && e.startedAt >= start && e.startedAt < end
+    (e) => e.endedAt && e.startedAt >= fromISO && e.startedAt < toISO
   )
 
   for (const entry of closedEntries) {
@@ -221,4 +239,10 @@ export async function monthlyReport(year: number, month: number): Promise<Monthl
   }
 
   return Array.from(rows.values()).filter((r) => r.totalMs > 0)
+}
+
+export async function monthlyReport(year: number, month: number): Promise<ReportRow[]> {
+  const start = new Date(year, month - 1, 1).toISOString()
+  const end = new Date(year, month, 1).toISOString()
+  return reportForRange(start, end)
 }

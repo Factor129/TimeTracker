@@ -5,11 +5,13 @@ Control de tiempo por proyecto para Windows, con icono en la bandeja del sistema
 ## Funcionalidades
 
 - Icono en la bandeja del sistema con menú rápido de proyectos y cronómetro.
-- Widget flotante siempre visible, con mosaico de proyectos (logo/imagen incluida), creación rápida de proyectos y tema claro/oscuro.
+- Widget flotante siempre visible y redimensionable a mano, con selección en dos pasos (cliente → proyecto del cliente), logos y tema claro/oscuro.
+- Creación de clientes y proyectos directamente desde el widget, sin salir del flujo.
 - Botones de minimizar ("enviar al fondo", sin ocultar el widget) y cerrar.
+- Aviso cada hora (notificación + icono de bandeja en rojo) mientras el cronómetro sigue activo, para no dejarte un proyecto corriendo por olvido.
 - Arranque automático con Windows (oculto en la bandeja).
-- Gestión de proyectos y clientes: tarifa por hora, imagen/logo, archivado.
-- Informe mensual por proyecto/cliente y exportación a CSV (por mes o por rango de fechas personalizado).
+- Gestión de clientes y proyectos: tarifa por hora, logo/imagen, archivado.
+- Informe por mes o por rango de fechas personalizado, con exportación a CSV (global o por proyecto).
 - Actualizaciones automáticas: la app comprueba sola si hay una versión nueva publicada y se actualiza en segundo plano.
 
 ## Descargar e instalar

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import type { MonthlyReportRow } from '../../shared/types'
+import type { ReportRow } from '../../shared/types'
+
+type Mode = 'month' | 'range'
 
 function monthLabel(year: number, month: number): string {
   return new Date(year, month - 1, 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
@@ -11,18 +13,36 @@ function formatHours(hours: number): string {
   return `${h}h ${m.toString().padStart(2, '0')}m`
 }
 
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function firstDayOfMonthISO(): string {
+  const d = new Date()
+  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10)
+}
+
 export default function ReportsPanel(): React.JSX.Element {
   const now = new Date()
+  const [mode, setMode] = useState<Mode>('month')
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
-  const [rows, setRows] = useState<MonthlyReportRow[]>([])
+  const [from, setFrom] = useState(firstDayOfMonthISO())
+  const [to, setTo] = useState(todayISO())
+  const [rows, setRows] = useState<ReportRow[]>([])
 
   useEffect(() => {
     void load()
-  }, [year, month])
+  }, [mode, year, month, from, to])
 
   async function load(): Promise<void> {
-    const data = await window.api.report.monthly(year, month)
+    const data =
+      mode === 'month'
+        ? await window.api.report.monthly(year, month)
+        : await window.api.report.range(
+            new Date(`${from}T00:00:00`).toISOString(),
+            new Date(`${to}T23:59:59.999`).toISOString()
+          )
     setRows(data)
   }
 
@@ -54,7 +74,8 @@ export default function ReportsPanel(): React.JSX.Element {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `informe-${year}-${month.toString().padStart(2, '0')}.csv`
+    const suffix = mode === 'month' ? `${year}-${month.toString().padStart(2, '0')}` : `${from}_${to}`
+    a.download = `informe-${suffix}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -64,21 +85,43 @@ export default function ReportsPanel(): React.JSX.Element {
 
   return (
     <div className="card">
-      <div className="month-picker">
-        <button className="btn secondary" onClick={() => shiftMonth(-1)}>
-          ← Anterior
+      <div className="tabs" style={{ marginLeft: 0, marginBottom: 14 }}>
+        <button className={`tab-btn ${mode === 'month' ? 'active' : ''}`} onClick={() => setMode('month')}>
+          Por mes
         </button>
-        <strong style={{ textTransform: 'capitalize', minWidth: 160, textAlign: 'center' }}>
-          {monthLabel(year, month)}
-        </strong>
-        <button className="btn secondary" onClick={() => shiftMonth(1)}>
-          Siguiente →
-        </button>
-        <div style={{ flex: 1 }} />
-        <button className="btn" onClick={exportCsv} disabled={rows.length === 0}>
-          Exportar CSV
+        <button className={`tab-btn ${mode === 'range' ? 'active' : ''}`} onClick={() => setMode('range')}>
+          Rango personalizado
         </button>
       </div>
+
+      {mode === 'month' ? (
+        <div className="month-picker">
+          <button className="btn secondary" onClick={() => shiftMonth(-1)}>
+            ← Anterior
+          </button>
+          <strong style={{ textTransform: 'capitalize', minWidth: 160, textAlign: 'center' }}>
+            {monthLabel(year, month)}
+          </strong>
+          <button className="btn secondary" onClick={() => shiftMonth(1)}>
+            Siguiente →
+          </button>
+          <div style={{ flex: 1 }} />
+          <button className="btn" onClick={exportCsv} disabled={rows.length === 0}>
+            Exportar CSV
+          </button>
+        </div>
+      ) : (
+        <div className="month-picker">
+          <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>Del</span>
+          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>al</span>
+          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          <div style={{ flex: 1 }} />
+          <button className="btn" onClick={exportCsv} disabled={rows.length === 0}>
+            Exportar CSV
+          </button>
+        </div>
+      )}
 
       <table>
         <thead>
@@ -103,7 +146,7 @@ export default function ReportsPanel(): React.JSX.Element {
           {rows.length === 0 && (
             <tr>
               <td colSpan={5} style={{ color: 'var(--text-dim)' }}>
-                Sin registros para este mes.
+                Sin registros para este periodo.
               </td>
             </tr>
           )}

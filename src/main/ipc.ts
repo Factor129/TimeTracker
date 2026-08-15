@@ -1,7 +1,9 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import * as db from './db'
-import { createMainWindow, resizeWidgetWindow, sendWidgetToBack, hideWidgetWindow } from './windows'
+import { createMainWindow, sendWidgetToBack, hideWidgetWindow } from './windows'
 import { setAutoLaunch } from './autostart'
+import { armReminders, disarmReminders } from './reminders'
+import type { TimeEntry } from '../shared/types'
 
 let rebuildTrayMenuRef: (() => Promise<void>) | null = null
 
@@ -25,6 +27,14 @@ export function broadcastProjectsChanged(): void {
   })
 }
 
+export function broadcastClientsChanged(): void {
+  db.listClients().then((clients) => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send('clients:changed', clients)
+    }
+  })
+}
+
 export function broadcastSettingsChanged(): void {
   db.getSettings().then((settings) => {
     for (const win of BrowserWindow.getAllWindows()) {
@@ -35,8 +45,15 @@ export function broadcastSettingsChanged(): void {
 
 export function registerIpcHandlers(): void {
   ipcMain.handle('clients:list', () => db.listClients())
-  ipcMain.handle('clients:upsert', (_e, input) => db.upsertClient(input))
-  ipcMain.handle('clients:archive', (_e, id: string, archived: boolean) => db.archiveClient(id, archived))
+  ipcMain.handle('clients:upsert', async (_e, input) => {
+    const result = await db.upsertClient(input)
+    broadcastClientsChanged()
+    return result
+  })
+  ipcMain.handle('clients:archive', async (_e, id: string, archived: boolean) => {
+    await db.archiveClient(id, archived)
+    broadcastClientsChanged()
+  })
 
   ipcMain.handle('projects:list', () => db.listProjects())
   ipcMain.handle('projects:upsert', async (_e, input) => {
@@ -52,17 +69,8 @@ export function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('timer:get', () => db.getRunning())
-  ipcMain.handle('timer:start', async (_e, projectId: string) => {
-    await db.startTimer(projectId)
-    await rebuildTrayMenuRef?.()
-    broadcastTimerState()
-  })
-  ipcMain.handle('timer:stop', async () => {
-    const entry = await db.stopTimer()
-    await rebuildTrayMenuRef?.()
-    broadcastTimerState()
-    return entry
-  })
+  ipcMain.handle('timer:start', (_e, projectId: string) => startTimerAction(projectId))
+  ipcMain.handle('timer:stop', () => stopTimerAction())
 
   ipcMain.handle('entries:list', (_e, from?: string, to?: string, projectId?: string) =>
     db.listEntries(from, to, projectId)
@@ -72,6 +80,7 @@ export function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('report:monthly', (_e, year: number, month: number) => db.monthlyReport(year, month))
+  ipcMain.handle('report:range', (_e, fromISO: string, toISO: string) => db.reportForRange(fromISO, toISO))
 
   ipcMain.handle('settings:get', () => db.getSettings())
   ipcMain.handle('settings:update', async (_e, patch) => {
@@ -92,7 +101,23 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('window:hideWidget', () => {
     hideWidgetWindow()
   })
-  ipcMain.handle('window:resizeWidget', (_e, width: number, height: number) => {
-    resizeWidgetWindow(width, height)
-  })
+}
+
+export async function startTimerAction(projectId: string): Promise<void> {
+  await db.startTimer(projectId)
+  const [projects, clients] = await Promise.all([db.listProjects(), db.listClients()])
+  const project = projects.find((p) => p.id === projectId)
+  const client = clients.find((c) => c.id === project?.clientId)
+  const label = client ? `${client.name} · ${project?.name}` : project?.name ?? 'proyecto'
+  armReminders(new Date().toISOString(), label)
+  await rebuildTrayMenuRef?.()
+  broadcastTimerState()
+}
+
+export async function stopTimerAction(): Promise<TimeEntry | null> {
+  const entry = await db.stopTimer()
+  disarmReminders()
+  await rebuildTrayMenuRef?.()
+  broadcastTimerState()
+  return entry
 }

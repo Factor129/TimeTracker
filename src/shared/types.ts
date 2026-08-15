@@ -1,6 +1,8 @@
 export interface Client {
   id: string
   name: string
+  color: string
+  imageDataUrl: string | null
   archived: boolean
 }
 
@@ -32,6 +34,8 @@ export type ThemeMode = 'light' | 'dark'
 export interface AppSettings {
   theme: ThemeMode
   autoLaunch: boolean
+  widgetWidth: number
+  widgetHeight: number
 }
 
 export interface AppData {
@@ -42,7 +46,7 @@ export interface AppData {
   settings: AppSettings
 }
 
-export interface MonthlyReportRow {
+export interface ReportRow {
   projectId: string
   projectName: string
   clientName: string

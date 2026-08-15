@@ -1,6 +1,7 @@
 import { BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { execFile } from 'child_process'
+import * as db from './db'
 
 const isDev = !!process.env.ELECTRON_RENDERER_URL
 
@@ -11,8 +12,9 @@ const preload = join(__dirname, '../preload/index.js')
 
 const WIDGET_RIGHT_MARGIN = 24
 const WIDGET_TOP_MARGIN = 24
-const WIDGET_DEFAULT_WIDTH = 280
-const WIDGET_DEFAULT_HEIGHT = 132
+const WIDGET_MIN_WIDTH = 260
+const WIDGET_MIN_HEIGHT = 200
+let widgetResizeSaveTimer: NodeJS.Timeout | null = null
 
 export function getMainWindow(): BrowserWindow | null {
   return mainWindow
@@ -67,15 +69,21 @@ export function createWidgetWindow(): BrowserWindow {
     return widgetWindow
   }
 
+  const settings = db.getSettingsSync()
+  const width = settings?.widgetWidth ?? 300
+  const height = settings?.widgetHeight ?? 400
+
   const display = screen.getPrimaryDisplay()
-  const { width } = display.workArea
+  const { width: screenWidth } = display.workArea
 
   widgetWindow = new BrowserWindow({
-    width: WIDGET_DEFAULT_WIDTH,
-    height: WIDGET_DEFAULT_HEIGHT,
-    x: width - WIDGET_DEFAULT_WIDTH - WIDGET_RIGHT_MARGIN,
+    width,
+    height,
+    x: screenWidth - width - WIDGET_RIGHT_MARGIN,
     y: WIDGET_TOP_MARGIN,
-    resizable: false,
+    minWidth: WIDGET_MIN_WIDTH,
+    minHeight: WIDGET_MIN_HEIGHT,
+    resizable: true,
     movable: true,
     frame: false,
     transparent: true,
@@ -89,6 +97,15 @@ export function createWidgetWindow(): BrowserWindow {
   })
 
   widgetWindow.setAlwaysOnTop(true, 'screen-saver')
+
+  widgetWindow.on('resize', () => {
+    if (widgetResizeSaveTimer) clearTimeout(widgetResizeSaveTimer)
+    widgetResizeSaveTimer = setTimeout(() => {
+      if (!widgetWindow || widgetWindow.isDestroyed()) return
+      const bounds = widgetWindow.getBounds()
+      db.updateSettings({ widgetWidth: bounds.width, widgetHeight: bounds.height }).catch(() => {})
+    }, 400)
+  })
 
   widgetWindow.on('close', (e) => {
     if (!(global as any).__appQuitting) {
@@ -125,19 +142,6 @@ export function toggleWidgetWindow(): void {
   } else {
     showWidgetWindow()
   }
-}
-
-/** Resizes the widget while keeping it anchored to the top-right corner of the screen. */
-export function resizeWidgetWindow(width: number, height: number): void {
-  if (!widgetWindow || widgetWindow.isDestroyed()) return
-  const display = screen.getPrimaryDisplay()
-  const { width: screenWidth } = display.workArea
-  widgetWindow.setBounds({
-    x: Math.round(screenWidth - width - WIDGET_RIGHT_MARGIN),
-    y: WIDGET_TOP_MARGIN,
-    width: Math.round(width),
-    height: Math.round(height)
-  })
 }
 
 function getHwndPointer(win: BrowserWindow): bigint {
