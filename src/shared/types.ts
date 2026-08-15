@@ -29,6 +29,14 @@ export interface RunningTimer {
   startedAt: string
 }
 
+export interface TimeBlock {
+  id: string
+  projectId: string
+  startAt: string // ISO datetime
+  endAt: string // ISO datetime
+  notified: boolean // whether the "10 min left" reminder already fired
+}
+
 export type ThemeMode = 'light' | 'dark'
 
 export interface AppSettings {
@@ -42,6 +50,7 @@ export interface AppData {
   clients: Client[]
   projects: Project[]
   entries: TimeEntry[]
+  blocks: TimeBlock[]
   running: RunningTimer | null
   settings: AppSettings
 }

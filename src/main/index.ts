@@ -5,6 +5,7 @@ import { createWidgetWindow, showWidgetWindow } from './windows'
 import { registerIpcHandlers, setTrayRefresher } from './ipc'
 import { syncAutoLaunch } from './autostart'
 import { initAutoUpdate, onUpdateReady } from './autoUpdate'
+import { startBlockScheduler } from './blockScheduler'
 
 const gotLock = app.requestSingleInstanceLock()
 if (!gotLock) {
@@ -25,6 +26,7 @@ if (!gotLock) {
 
     onUpdateReady(() => rebuildTrayMenu())
     initAutoUpdate()
+    startBlockScheduler()
   })
 
   app.on('window-all-closed', () => {

@@ -172,6 +172,9 @@ export default function Widget(): React.JSX.Element {
         <button title="Ajustes" onClick={() => window.api.window.openSettings()}>
           ⚙
         </button>
+        <button title="Calendario" onClick={() => window.api.window.openCalendar()}>
+          📅
+        </button>
         <button title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'} onClick={toggleTheme}>
           {theme === 'dark' ? '☀' : '☾'}
         </button>

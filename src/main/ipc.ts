@@ -1,6 +1,6 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import * as db from './db'
-import { createMainWindow, sendWidgetToBack, hideWidgetWindow } from './windows'
+import { createMainWindow, openCalendarWindow, sendWidgetToBack, hideWidgetWindow } from './windows'
 import { setAutoLaunch } from './autostart'
 import { armReminders, disarmReminders } from './reminders'
 import type { TimeEntry } from '../shared/types'
@@ -78,9 +78,19 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('entries:delete', async (_e, id: string) => {
     await db.deleteEntry(id)
   })
+  ipcMain.handle('entries:update', (_e, id: string, patch: { startedAt: string; endedAt: string }) =>
+    db.updateEntry(id, patch)
+  )
 
   ipcMain.handle('report:monthly', (_e, year: number, month: number) => db.monthlyReport(year, month))
   ipcMain.handle('report:range', (_e, fromISO: string, toISO: string) => db.reportForRange(fromISO, toISO))
+
+  ipcMain.handle('blocks:list', (_e, fromISO: string, toISO: string) => db.listBlocks(fromISO, toISO))
+  ipcMain.handle('blocks:upsert', (_e, input) => db.upsertBlock(input))
+  ipcMain.handle('blocks:extend', (_e, id: string, minutes: number) => db.extendBlock(id, minutes))
+  ipcMain.handle('blocks:delete', async (_e, id: string) => {
+    await db.deleteBlock(id)
+  })
 
   ipcMain.handle('settings:get', () => db.getSettings())
   ipcMain.handle('settings:update', async (_e, patch) => {
@@ -94,6 +104,9 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('window:openSettings', () => {
     createMainWindow()
+  })
+  ipcMain.handle('window:openCalendar', () => {
+    openCalendarWindow()
   })
   ipcMain.handle('window:sendWidgetToBack', () => {
     sendWidgetToBack()

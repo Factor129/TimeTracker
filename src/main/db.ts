@@ -2,12 +2,13 @@ import { app } from 'electron'
 import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { randomUUID } from 'crypto'
-import type { AppData, AppSettings, Client, Project, TimeEntry, ReportRow } from '../shared/types'
+import type { AppData, AppSettings, Client, Project, TimeEntry, TimeBlock, ReportRow } from '../shared/types'
 
 const defaultData: AppData = {
   clients: [],
   projects: [],
   entries: [],
+  blocks: [],
   running: null,
   settings: {
     theme: 'dark',
@@ -183,6 +184,81 @@ export async function deleteEntry(id: string): Promise<void> {
   const data = d()
   data.entries = data.entries.filter((e) => e.id !== id)
   await write()
+}
+
+export async function updateEntry(
+  id: string,
+  patch: { startedAt: string; endedAt: string }
+): Promise<TimeEntry | null> {
+  const data = d()
+  const entry = data.entries.find((e) => e.id === id)
+  if (!entry) return null
+  entry.startedAt = patch.startedAt
+  entry.endedAt = patch.endedAt
+  await write()
+  return entry
+}
+
+// ---- Time blocks (planned schedule) ----
+export async function listBlocks(fromISO: string, toISO: string): Promise<TimeBlock[]> {
+  return d().blocks.filter((b) => b.startAt < toISO && b.endAt > fromISO)
+}
+
+export async function upsertBlock(input: {
+  id?: string
+  projectId: string
+  startAt: string
+  endAt: string
+}): Promise<TimeBlock> {
+  const data = d()
+  if (input.id) {
+    const existing = data.blocks.find((b) => b.id === input.id)
+    if (!existing) throw new Error('Block not found')
+    existing.projectId = input.projectId
+    existing.startAt = input.startAt
+    existing.endAt = input.endAt
+    existing.notified = false
+    await write()
+    return existing
+  }
+  const block: TimeBlock = {
+    id: uuid(),
+    projectId: input.projectId,
+    startAt: input.startAt,
+    endAt: input.endAt,
+    notified: false
+  }
+  data.blocks.push(block)
+  await write()
+  return block
+}
+
+export async function extendBlock(id: string, minutes: number): Promise<TimeBlock | null> {
+  const data = d()
+  const block = data.blocks.find((b) => b.id === id)
+  if (!block) return null
+  block.endAt = new Date(new Date(block.endAt).getTime() + minutes * 60_000).toISOString()
+  block.notified = false
+  await write()
+  return block
+}
+
+export async function deleteBlock(id: string): Promise<void> {
+  const data = d()
+  data.blocks = data.blocks.filter((b) => b.id !== id)
+  await write()
+}
+
+export function getBlocksSync(): TimeBlock[] {
+  return data?.blocks ?? []
+}
+
+export async function markBlockNotified(id: string): Promise<void> {
+  const block = d().blocks.find((b) => b.id === id)
+  if (block) {
+    block.notified = true
+    await write()
+  }
 }
 
 // ---- Settings ----

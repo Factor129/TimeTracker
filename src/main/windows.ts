@@ -64,6 +64,17 @@ export function createMainWindow(): BrowserWindow {
   return mainWindow
 }
 
+/** Opens (or focuses) the main window and switches it straight to the calendar tab. */
+export function openCalendarWindow(): void {
+  const win = createMainWindow()
+  const navigate = (): void => win.webContents.send('navigate:tab', 'calendar')
+  if (win.webContents.isLoading()) {
+    win.webContents.once('did-finish-load', navigate)
+  } else {
+    navigate()
+  }
+}
+
 export function createWidgetWindow(): BrowserWindow {
   if (widgetWindow && !widgetWindow.isDestroyed()) {
     return widgetWindow

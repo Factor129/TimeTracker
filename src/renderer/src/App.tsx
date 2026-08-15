@@ -1,14 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ProjectsPanel from './ProjectsPanel'
 import ReportsPanel from './ReportsPanel'
 import GeneralSettingsPanel from './GeneralSettingsPanel'
+import CalendarPanel from './CalendarPanel'
 import { useTheme } from './useTheme'
 
-type Tab = 'projects' | 'reports' | 'general'
+type Tab = 'projects' | 'reports' | 'calendar' | 'general'
 
 export default function App(): React.JSX.Element {
   const [tab, setTab] = useState<Tab>('projects')
   const [theme, toggleTheme] = useTheme()
+
+  useEffect(() => {
+    return window.api.navigation.onNavigate((t) => setTab(t as Tab))
+  }, [])
 
   return (
     <div className="app">
@@ -25,7 +30,13 @@ export default function App(): React.JSX.Element {
             className={`tab-btn ${tab === 'reports' ? 'active' : ''}`}
             onClick={() => setTab('reports')}
           >
-            Informe mensual
+            Informe
+          </button>
+          <button
+            className={`tab-btn ${tab === 'calendar' ? 'active' : ''}`}
+            onClick={() => setTab('calendar')}
+          >
+            Calendario
           </button>
           <button
             className={`tab-btn ${tab === 'general' ? 'active' : ''}`}
@@ -46,6 +57,7 @@ export default function App(): React.JSX.Element {
       <main className="app-body">
         {tab === 'projects' && <ProjectsPanel />}
         {tab === 'reports' && <ReportsPanel />}
+        {tab === 'calendar' && <CalendarPanel />}
         {tab === 'general' && <GeneralSettingsPanel />}
       </main>
     </div>

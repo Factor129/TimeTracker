@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReportRow } from '../../shared/types'
+import EntriesList from './EntriesList'
 
 type Mode = 'month' | 'range'
 
@@ -31,18 +32,20 @@ export default function ReportsPanel(): React.JSX.Element {
   const [to, setTo] = useState(todayISO())
   const [rows, setRows] = useState<ReportRow[]>([])
 
+  const rangeFromISO =
+    mode === 'month'
+      ? new Date(year, month - 1, 1).toISOString()
+      : new Date(`${from}T00:00:00`).toISOString()
+  const rangeToISO =
+    mode === 'month' ? new Date(year, month, 1).toISOString() : new Date(`${to}T23:59:59.999`).toISOString()
+
   useEffect(() => {
     void load()
   }, [mode, year, month, from, to])
 
   async function load(): Promise<void> {
     const data =
-      mode === 'month'
-        ? await window.api.report.monthly(year, month)
-        : await window.api.report.range(
-            new Date(`${from}T00:00:00`).toISOString(),
-            new Date(`${to}T23:59:59.999`).toISOString()
-          )
+      mode === 'month' ? await window.api.report.monthly(year, month) : await window.api.report.range(rangeFromISO, rangeToISO)
     setRows(data)
   }
 
@@ -157,6 +160,8 @@ export default function ReportsPanel(): React.JSX.Element {
         Total: <strong>{formatHours(totalHours)}</strong> · Importe estimado:{' '}
         <strong>{totalAmount.toFixed(2)} €</strong>
       </div>
+
+      <EntriesList key={`${rangeFromISO}_${rangeToISO}`} fromISO={rangeFromISO} toISO={rangeToISO} onChange={load} />
     </div>
   )
 }

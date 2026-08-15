@@ -11,7 +11,8 @@ Control de tiempo por proyecto para Windows, con icono en la bandeja del sistema
 - Aviso cada hora (notificación + icono de bandeja en rojo) mientras el cronómetro sigue activo, para no dejarte un proyecto corriendo por olvido.
 - Arranque automático con Windows (oculto en la bandeja).
 - Gestión de clientes y proyectos: tarifa por hora, logo/imagen, archivado.
-- Informe por mes o por rango de fechas personalizado, con exportación a CSV (global o por proyecto).
+- Informe por mes o por rango de fechas personalizado, con exportación a CSV (global o por proyecto), y edición/eliminación de registros individuales.
+- Calendario de bloques: planifica tramos horarios por proyecto (ej. 10:00–14:00 cliente A) con aviso 10 minutos antes de que termine el bloque y opción de ampliarlo.
 - Actualizaciones automáticas: la app comprueba sola si hay una versión nueva publicada y se actualiza en segundo plano.
 
 ## Descargar e instalar

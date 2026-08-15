@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Client, Project, TimeEntry, RunningTimer, ReportRow, AppSettings } from '../shared/types'
+import type { Client, Project, TimeEntry, TimeBlock, RunningTimer, ReportRow, AppSettings } from '../shared/types'
 
 const api = {
   clients: {
@@ -50,7 +50,18 @@ const api = {
   entries: {
     list: (from?: string, to?: string, projectId?: string): Promise<TimeEntry[]> =>
       ipcRenderer.invoke('entries:list', from, to, projectId),
-    delete: (id: string): Promise<void> => ipcRenderer.invoke('entries:delete', id)
+    delete: (id: string): Promise<void> => ipcRenderer.invoke('entries:delete', id),
+    update: (id: string, patch: { startedAt: string; endedAt: string }): Promise<TimeEntry | null> =>
+      ipcRenderer.invoke('entries:update', id, patch)
+  },
+  blocks: {
+    list: (fromISO: string, toISO: string): Promise<TimeBlock[]> =>
+      ipcRenderer.invoke('blocks:list', fromISO, toISO),
+    upsert: (input: { id?: string; projectId: string; startAt: string; endAt: string }): Promise<TimeBlock> =>
+      ipcRenderer.invoke('blocks:upsert', input),
+    extend: (id: string, minutes: number): Promise<TimeBlock | null> =>
+      ipcRenderer.invoke('blocks:extend', id, minutes),
+    delete: (id: string): Promise<void> => ipcRenderer.invoke('blocks:delete', id)
   },
   report: {
     monthly: (year: number, month: number): Promise<ReportRow[]> =>
@@ -70,8 +81,16 @@ const api = {
   },
   window: {
     openSettings: (): Promise<void> => ipcRenderer.invoke('window:openSettings'),
+    openCalendar: (): Promise<void> => ipcRenderer.invoke('window:openCalendar'),
     sendWidgetToBack: (): Promise<void> => ipcRenderer.invoke('window:sendWidgetToBack'),
     hideWidget: (): Promise<void> => ipcRenderer.invoke('window:hideWidget')
+  },
+  navigation: {
+    onNavigate: (cb: (tab: string) => void): (() => void) => {
+      const listener = (_e: unknown, tab: string): void => cb(tab)
+      ipcRenderer.on('navigate:tab', listener)
+      return () => ipcRenderer.removeListener('navigate:tab', listener)
+    }
   }
 }
 
