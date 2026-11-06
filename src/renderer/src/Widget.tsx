@@ -179,10 +179,10 @@ export default function Widget(): React.JSX.Element {
           {theme === 'dark' ? '☀' : '☾'}
         </button>
         <div className="spacer" />
-        <button title="Enviar al fondo" onClick={() => window.api.window.sendWidgetToBack()}>
+        <button title="Enviar al escritorio" onClick={() => window.api.window.sendWidgetToBack()}>
           &#x2013;
         </button>
-        <button title="Cerrar" className="close-btn" onClick={() => window.api.window.hideWidget()}>
+        <button title="Cerrar (sigue en la bandeja)" className="close-btn" onClick={() => window.api.window.hideWidget()}>
           ×
         </button>
       </div>

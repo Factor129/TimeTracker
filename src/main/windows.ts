@@ -15,6 +15,8 @@ const WIDGET_TOP_MARGIN = 24
 const WIDGET_MIN_WIDTH = 260
 const WIDGET_MIN_HEIGHT = 200
 let widgetResizeSaveTimer: NodeJS.Timeout | null = null
+// True while the widget sits on the desktop behind other windows (sent to back).
+let widgetSentToBack = false
 
 export function getMainWindow(): BrowserWindow | null {
   return mainWindow
@@ -81,21 +83,25 @@ export function createWidgetWindow(): BrowserWindow {
   }
 
   const settings = db.getSettingsSync()
-  const width = settings?.widgetWidth ?? 300
-  const height = settings?.widgetHeight ?? 400
+  const savedWidth = settings?.widgetWidth ?? 300
+  const savedHeight = settings?.widgetHeight ?? 400
 
   const display = screen.getPrimaryDisplay()
-  const { width: screenWidth } = display.workArea
+  const workArea = display.workArea
+  // Keep a previously saved size inside the screen so the widget never starts off-screen.
+  const width = Math.min(savedWidth, workArea.width - WIDGET_RIGHT_MARGIN * 2)
+  const height = Math.min(savedHeight, workArea.height - WIDGET_TOP_MARGIN * 2)
 
   widgetWindow = new BrowserWindow({
     width,
     height,
-    x: screenWidth - width - WIDGET_RIGHT_MARGIN,
-    y: WIDGET_TOP_MARGIN,
+    x: workArea.x + workArea.width - width - WIDGET_RIGHT_MARGIN,
+    y: workArea.y + WIDGET_TOP_MARGIN,
     minWidth: WIDGET_MIN_WIDTH,
     minHeight: WIDGET_MIN_HEIGHT,
     resizable: true,
     movable: true,
+    maximizable: false,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -118,6 +124,12 @@ export function createWidgetWindow(): BrowserWindow {
     }, 400)
   })
 
+  // Minimizing sends the widget to the desktop (behind other windows) instead of shrinking it.
+  widgetWindow.on('minimize', () => {
+    widgetWindow?.restore()
+    sendWidgetToBack()
+  })
+
   widgetWindow.on('close', (e) => {
     if (!(global as any).__appQuitting) {
       e.preventDefault()
@@ -137,6 +149,7 @@ export function createWidgetWindow(): BrowserWindow {
 /** Shows the widget, re-enabling always-on-top and bringing it above other windows. */
 export function showWidgetWindow(): void {
   const w = createWidgetWindow()
+  widgetSentToBack = false
   w.setAlwaysOnTop(true, 'screen-saver')
   w.showInactive()
   w.moveTop()
@@ -148,7 +161,8 @@ export function hideWidgetWindow(): void {
 
 export function toggleWidgetWindow(): void {
   const w = createWidgetWindow()
-  if (w.isVisible()) {
+  // A widget sitting behind other windows is brought back to the front rather than hidden.
+  if (w.isVisible() && !widgetSentToBack) {
     hideWidgetWindow()
   } else {
     showWidgetWindow()
@@ -167,6 +181,7 @@ function getHwndPointer(win: BrowserWindow): bigint {
  */
 export function sendWidgetToBack(): void {
   if (!widgetWindow || widgetWindow.isDestroyed()) return
+  widgetSentToBack = true
   widgetWindow.setAlwaysOnTop(false)
   widgetWindow.blur()
 

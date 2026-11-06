@@ -21,8 +21,8 @@ if (!gotLock) {
     setTrayRefresher(rebuildTrayMenu)
     await syncAutoLaunch()
     await createTray()
-    // Pre-create the widget window hidden; the tray icon reveals it on click.
-    createWidgetWindow()
+    // Show the widget on the desktop as soon as the app starts (including at Windows login).
+    createWidgetWindow().once('ready-to-show', showWidgetWindow)
 
     onUpdateReady(() => rebuildTrayMenu())
     initAutoUpdate()
